@@ -5,12 +5,17 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKeys;
 
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 
 public class FragmentB extends Fragment {
@@ -30,32 +35,46 @@ public class FragmentB extends Fragment {
         View v = inflater.inflate(R.layout.fragment_b, container, false);
         tx_name = v.findViewById(R.id.txt_name);
         tx_place = v.findViewById(R.id.txt_place);
-try{
-    Bundle bundle=this.getArguments();
-    String getname= bundle.getString("namekey");
-    String getplace= bundle.getString("placekey");
-    initSharedPref();
-
-//    FragmentB fragmentb=new FragmentB();
-//    getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.main_container,fragmentb).commit();
-}catch (Exception e){
-    Log.i("error>>",e.toString());
-}
-
-
+       // initSharedPref();
+        try {
+            sharedPrefs();
+        } catch (GeneralSecurityException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return v;
     }
 
-    private void initSharedPref() {
-        SharedPreferences sharedPref = getContext().getSharedPreferences("storage", Context.MODE_PRIVATE);
-        String name = sharedPref.getString("namekey" , "");
-        String place = sharedPref.getString("placekey" , "");
+    private void initSharedPref()  {
 
-        Log.i("name>>>>", name);
 
+           SharedPreferences sharedPreferences = getContext().getSharedPreferences("savefetch", Context.MODE_PRIVATE);
+            String name2 =sharedPreferences.getString("namekey", "");
+            String place2 = sharedPreferences.getString("placekey", "");
+            tx_name.setText(name2);
+            tx_place.setText(place2);
+
+
+
+
+
+
+    }
+
+    private void sharedPrefs() throws GeneralSecurityException, IOException {
+
+        String masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC);
+        SharedPreferences sharedPreference = EncryptedSharedPreferences.create(
+                "savefetch",
+                masterKeyAlias,
+                getContext(),
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM);
+
+        String name  = sharedPreference.getString("namekey" , "");
+        String place  = sharedPreference.getString("placekey" , "");
         tx_name.setText(name);
         tx_place.setText(place);
-
-
     }
 }
